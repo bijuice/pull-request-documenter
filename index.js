@@ -22,6 +22,17 @@ async function fetchRepo() {
   } catch (error) {
     console.error("Unable to fetch repo");
   }
+
+  //fetch diff
+  console.log("Fetching diff...");
+  let diff = "";
+  try {
+    diff = await axios.get(diffUrl).then((res) => res.data);
+
+    console.log(diff);
+  } catch (error) {
+    console.error(error);
+  }
 }
 
-fetchRepo();
+// fetchRepo();
