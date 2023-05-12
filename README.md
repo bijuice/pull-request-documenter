@@ -1,3 +1,5 @@
+# Pull Request Documenter
+
 A simple documentation script that fetches the latest pull request from a repo and generates a change request form using the Open AI API.
 
 ## Requirements
@@ -23,6 +25,8 @@ GITHUB_TOKEN=<Your GitHub Personal Access Token>
 `node index.js <username> <repo>`
 
 The script takes 2 arguments: the username of the repo owner and the name of the repo. For example, if you wanted to generate a change request form for this repo, you would run: `node index.js bijuice pull-request-documenter`
+
+A .txt file with the title of the pull request will be generated in the root folder.
 
 ## Coming Soon
 
