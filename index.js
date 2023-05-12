@@ -41,12 +41,14 @@ async function fetchRepo() {
   console.log("Fetching latest pull request...");
   let diffUrl = "";
   try {
-    diffUrl = await octokit
+    await octokit
       .request("GET /repos/{owner}/{repo}/pulls", {
         owner: "bijuice",
         repo: "portfolio-v2",
       })
-      .then((res) => res.data[0].diff_url);
+      .then((res) => {
+        diffUrl = res.data[0].diff_url;
+      });
   } catch (error) {
     console.error("Unable to fetch repo");
     return;
@@ -63,15 +65,15 @@ async function fetchRepo() {
   }
 
   //generate explanation
-  console.log("Generating explanation...");
+  console.log("Generating documentation...");
   try {
-    const completion = await openai.createCompletion({
+    const response = await openai.createCompletion({
       model: "text-davinci-003",
       prompt: generatePrompt(diff),
-      temperature: 0.6,
+      temperature: 0,
+      max_tokens: 1000,
     });
-
-    console.log(completion.data.choices);
+    console.log(response.data);
   } catch (error) {
     if (error.response) {
       console.error(error.response.status, error.response.data);
@@ -84,7 +86,7 @@ async function fetchRepo() {
 }
 
 function generatePrompt(diff) {
-  const prompt = `This is the diff for a pull request. I want you to explain the changes in plain english without explaining what the code does.\n ${diff} \n`;
+  const prompt = `This is the diff for a pull request:\n ${diff} \n I want you to create a change request form based on the information in the pull request. The change request form should answer the following questions:\n1.Reason for change.\n2. Desired outcome of change.\n3.Rollout plan.\n4.Backout or Rollback Plan\n5. Services/Applications Affected.\n6.Users/Departments Affected\n7.Resource Requirements\n8.Communication Plan\n9.Test Details`;
 
   return prompt;
 }
