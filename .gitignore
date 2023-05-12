@@ -1,0 +1,4 @@
+/node_modules
+
+#any .env files
+.env*
