@@ -2,6 +2,7 @@ const { Octokit } = require("octokit");
 const axios = require("axios");
 const { Configuration, OpenAIApi } = require("openai");
 const dotenv = require("dotenv");
+const generateFormFile = require("./utilities/generateFormFile");
 
 dotenv.config();
 
@@ -40,6 +41,7 @@ async function fetchRepo() {
   //fetch diff url from latest pull request
   console.log("Fetching latest pull request...");
   let diffUrl = "";
+  let title = "";
   try {
     await octokit
       .request("GET /repos/{owner}/{repo}/pulls", {
@@ -48,6 +50,7 @@ async function fetchRepo() {
       })
       .then((res) => {
         diffUrl = res.data[0].diff_url;
+        title = res.data[0].title;
       });
   } catch (error) {
     console.error("Unable to fetch repo");
@@ -74,6 +77,8 @@ async function fetchRepo() {
       max_tokens: 1000,
     });
     console.log(response.data);
+
+    generateFormFile(title, response.data.choices[0].text);
   } catch (error) {
     if (error.response) {
       console.error(error.response.status, error.response.data);
