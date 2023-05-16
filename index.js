@@ -6,12 +6,12 @@ const generateFormFile = require("./utilities/generateFormFile")
 
 dotenv.config()
 
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN
+const { GITHUB_TOKEN, OPENAI_API_KEY } = process.env
+
 const octokit = new Octokit({
   auth: GITHUB_TOKEN,
 })
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY
 const configuration = new Configuration({
   apiKey: OPENAI_API_KEY,
 })
