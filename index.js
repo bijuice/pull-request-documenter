@@ -49,10 +49,22 @@ async function fetchRepo() {
         repo: "portfolio-v2",
       })
       .then((res) => {
+        if (res.data.length === 0) {
+          console.error("No pull requests found.")
+          return
+        }
+
         diffUrl = res.data[0].diff_url
         title = res.data[0].title
       })
   } catch (error) {
+    if (error.response?.status === 404) {
+      console.error(
+        "Repo not found. Please check if repo is private and if GITHUB_TOKEN has access to it. "
+      )
+      return
+    }
+
     console.error("Unable to fetch repo")
     return
   }
