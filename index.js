@@ -45,8 +45,8 @@ async function fetchRepo() {
   try {
     await octokit
       .request("GET /repos/{owner}/{repo}/pulls", {
-        owner: "bijuice",
-        repo: "portfolio-v2",
+        owner,
+        repo,
       })
       .then((res) => {
         if (res.data.length === 0) {
