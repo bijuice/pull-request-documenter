@@ -6,7 +6,7 @@ async function fetchDiff(diffUrl) {
 
   const resp = axios.get(diffUrl);
 
-  return resp;
+  return resp.data;
 }
 
 module.exports = fetchDiff;
