@@ -11,23 +11,21 @@ async function generateAIResponse({ OPENAI_API_KEY, diff, title }) {
   const openai = new OpenAIApi(configuration);
 
   try {
-    const response = await openai.createCompletion({
-      model: "gpt-3.5-turbo-instruct",
-      prompt: generatePrompt(diff),
-      temperature: 0,
-      max_tokens: 1000,
+    const response = await openai.createChatCompletion({
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "user",
+          content: `This is the diff for a pull request: ${diff}. Explain the changes to me`,
+        },
+      ],
     });
 
-    console.log(response);
+    console.log(response.data.choices[0]);
 
-    generateFormFile(title, response.data.choices[0].text);
+    // generateFormFile(title, response.data.choices[0].text);
   } catch (error) {
-    console.log(error);
-    if (error.response) {
-      throw new Error(error.response.status, error.response.data);
-    }
-
-    throw new Error(`Error with OpenAI API request: ${error.message}`);
+    console.log(error.response);
   }
 }
 

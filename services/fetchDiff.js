@@ -4,7 +4,7 @@ async function fetchDiff(diffUrl) {
   //fetch diff
   console.log("Fetching diff...");
 
-  const resp = axios.get(diffUrl);
+  const resp = await axios.get(diffUrl);
 
   return resp.data;
 }
