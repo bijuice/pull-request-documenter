@@ -2,51 +2,53 @@ const { Octokit } = require("octokit");
 const axios = require("axios");
 const { Configuration, OpenAIApi } = require("openai");
 const dotenv = require("dotenv");
-const fetchDiff = require("./services/fetchDiff");
+const fetchDiffDetails = require("./services/fetchDiffDetails");
 const generateFormFile = require("./utilities/generateFormFile");
 const generatePrompt = require("./utilities/generatePrompt");
-
-dotenv.config();
-
-const { GITHUB_TOKEN, OPENAI_API_KEY } = process.env;
-
-const configuration = new Configuration({
-  apiKey: OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(configuration);
-
-//fetch command line params
-const [owner, repo] = process.argv.slice(2);
-
-if (!GITHUB_TOKEN) {
-  throw new Error("GITHUB_TOKEN not found");
-}
-
-if (!OPENAI_API_KEY) {
-  throw new Error("OPENAI_API_KEY not found");
-}
-
-if (!owner || !repo) {
-  throw new Error(
-    "Please provide owner and repo in command line arguments. See README.md for more info. "
-  );
-}
+const fetchDiff = require("./services/fetchDiff");
 
 async function main() {
+  dotenv.config();
+
+  const { GITHUB_TOKEN, OPENAI_API_KEY } = process.env;
+
+  const configuration = new Configuration({
+    apiKey: OPENAI_API_KEY,
+  });
+  const openai = new OpenAIApi(configuration);
+
+  //fetch command line params
+  const [owner, repo] = process.argv.slice(2);
+
+  if (!GITHUB_TOKEN) {
+    throw new Error("GITHUB_TOKEN not found");
+  }
+
+  if (!OPENAI_API_KEY) {
+    throw new Error("OPENAI_API_KEY not found");
+  }
+
+  if (!owner || !repo) {
+    throw new Error(
+      "Please provide owner and repo in command line arguments. See README.md for more info. "
+    );
+  }
+
   //fetch diff url from latest pull request
-  const { diffUrl, title } = await fetchDiff({ GITHUB_TOKEN, owner, repo });
+  const { diffUrl, title } = await fetchDiffDetails({
+    GITHUB_TOKEN,
+    owner,
+    repo,
+  });
 
   console.log(diffUrl, title);
+
+  //fetch diff
+  console.log("Fetching diff...");
+  const diff = await fetchDiff(diffUrl);
 }
 
-// //fetch diff
-// console.log("Fetching diff...")
-// let diff = ""
-// try {
-//   diff = await axios.get(diffUrl).then((res) => res.data)
-// } catch (error) {
-//   throw new Error(error)
-// }
+main();
 
 // //generate explanation
 // console.log("Generating documentation...")
