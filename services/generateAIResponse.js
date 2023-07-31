@@ -21,9 +21,7 @@ async function generateAIResponse({ OPENAI_API_KEY, diff, title }) {
       ],
     });
 
-    console.log(response.data.choices[0]);
-
-    // generateFormFile(title, response.data.choices[0].text);
+    generateFormFile(title, response.data.choices[0].message.content);
   } catch (error) {
     console.log(error.response);
   }
