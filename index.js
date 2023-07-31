@@ -1,110 +1,68 @@
-const { Octokit } = require("octokit")
-const axios = require("axios")
-const { Configuration, OpenAIApi } = require("openai")
-const dotenv = require("dotenv")
-const generateFormFile = require("./utilities/generateFormFile")
+const { Octokit } = require("octokit");
+const axios = require("axios");
+const { Configuration, OpenAIApi } = require("openai");
+const dotenv = require("dotenv");
+const fetchDiff = require("./services/fetchDiff");
+const generateFormFile = require("./utilities/generateFormFile");
+const generatePrompt = require("./utilities/generatePrompt");
 
-dotenv.config()
+dotenv.config();
 
-const { GITHUB_TOKEN, OPENAI_API_KEY } = process.env
-
-const octokit = new Octokit({
-  auth: GITHUB_TOKEN,
-})
+const { GITHUB_TOKEN, OPENAI_API_KEY } = process.env;
 
 const configuration = new Configuration({
   apiKey: OPENAI_API_KEY,
-})
-const openai = new OpenAIApi(configuration)
+});
+const openai = new OpenAIApi(configuration);
 
 //fetch command line params
-const [owner, repo] = process.argv.slice(2)
+const [owner, repo] = process.argv.slice(2);
 
-async function fetchRepo() {
-  if (!GITHUB_TOKEN) {
-    console.error("GITHUB_TOKEN not found")
-    return
-  }
+if (!GITHUB_TOKEN) {
+  throw new Error("GITHUB_TOKEN not found");
+}
 
-  if (!OPENAI_API_KEY) {
-    console.error("OPENAI_API_KEY not found")
-    return
-  }
+if (!OPENAI_API_KEY) {
+  throw new Error("OPENAI_API_KEY not found");
+}
 
-  if (!owner || !repo) {
-    console.error(
-      "Please provide owner and repo in command line arguments. See README.md for more info. "
-    )
-    return
-  }
+if (!owner || !repo) {
+  throw new Error(
+    "Please provide owner and repo in command line arguments. See README.md for more info. "
+  );
+}
 
+async function main() {
   //fetch diff url from latest pull request
-  console.log("Fetching latest pull request...")
-  let diffUrl = ""
-  let title = ""
-  try {
-    await octokit
-      .request("GET /repos/{owner}/{repo}/pulls", {
-        owner,
-        repo,
-      })
-      .then((res) => {
-        if (res.data.length === 0) {
-          console.error("No pull requests found.")
-          return
-        }
+  const { diffUrl, title } = await fetchDiff({ GITHUB_TOKEN, owner, repo });
 
-        diffUrl = res.data[0].diff_url
-        title = res.data[0].title
-      })
-  } catch (error) {
-    if (error.response?.status === 404) {
-      console.error(
-        "Repo not found. Please check if repo is private and if GITHUB_TOKEN has access to it. "
-      )
-      return
-    }
-
-    console.error("Unable to fetch repo")
-    return
-  }
-
-  //fetch diff
-  console.log("Fetching diff...")
-  let diff = ""
-  try {
-    diff = await axios.get(diffUrl).then((res) => res.data)
-  } catch (error) {
-    console.error(error)
-    return
-  }
-
-  //generate explanation
-  console.log("Generating documentation...")
-  try {
-    const response = await openai.createCompletion({
-      model: "text-davinci-003",
-      prompt: generatePrompt(diff),
-      temperature: 0,
-      max_tokens: 1000,
-    })
-
-    generateFormFile(title, response.data.choices[0].text)
-  } catch (error) {
-    if (error.response) {
-      console.error(error.response.status, error.response.data)
-      return
-    }
-
-    console.error(`Error with OpenAI API request: ${error.message}`)
-    return
-  }
+  console.log(diffUrl, title);
 }
 
-function generatePrompt(diff) {
-  const prompt = `This is the diff for a pull request:\n ${diff} \n I want you to create a change request form based on the information in the pull request. The change request form should answer the following questions:\n1.Reason for change.\n2. Desired outcome of change.\n3.Rollout plan.\n4.Backout or Rollback Plan\n5. Services/Applications Affected.\n6.Users/Departments Affected\n7.Resource Requirements\n8.Communication Plan\n9.Test Details`
+// //fetch diff
+// console.log("Fetching diff...")
+// let diff = ""
+// try {
+//   diff = await axios.get(diffUrl).then((res) => res.data)
+// } catch (error) {
+//   throw new Error(error)
+// }
 
-  return prompt
-}
+// //generate explanation
+// console.log("Generating documentation...")
+// try {
+//   const response = await openai.createCompletion({
+//     model: "text-davinci-003",
+//     prompt: generatePrompt(diff),
+//     temperature: 0,
+//     max_tokens: 1000,
+//   })
 
-fetchRepo()
+//   generateFormFile(title, response.data.choices[0].text)
+// } catch (error) {
+//   if (error.response) {
+//     throw new Error(error.response.status, error.response.data)
+//   }
+
+//   throw new Error(`Error with OpenAI API request: ${error.message}`)
+// }
